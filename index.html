@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wellow Inc. | Online Role-Play</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        wellow: {
+                            50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe', 300: '#c4b5fd',
+                            400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9',
+                            800: '#5b21b6', 900: '#4c1d95', 950: '#2e1065',
+                            dark: '#130b29', darker: '#0a0514'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0a0514; color: #e2e8f0; scroll-behavior: smooth; }
+        .glass-panel {
+            background: rgba(46, 16, 101, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 1.5rem;
+        }
+        .glass-nav {
+            background: rgba(10, 5, 20, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+        }
+        .smooth-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%);
+            box-shadow: 0 4px 14px 0 rgba(124, 58, 237, 0.39);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #8b5cf6 0%, #5b21b6 100%);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.23);
+            transform: translateY(-1px);
+        }
+        .hidden-section { display: none; }
+        .active-section { display: block; animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0514; }
+        ::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6d28d9; }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="glass-nav fixed w-full z-50 top-0 smooth-transition">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex-shrink-0 cursor-pointer" onclick="showSection('home')">
+                    <span class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-wellow-400 to-wellow-600 tracking-tight">Wellow Inc.</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#" onclick="showSection('home')" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium smooth-transition">Главная</a>
+                        <a href="#" onclick="showSection('achievements')" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium smooth-transition">Достижения</a>
+                        <a href="#" onclick="showSection('structure')" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium smooth-transition">Структура</a>
+                        <a href="#" onclick="showSection('market')" id="nav-market" class="text-gray-300 hover:text-wellow-400 px-3 py-2 rounded-md text-sm font-medium smooth-transition hidden">Market</a>
+                        <a href="#" onclick="showSection('admin')" id="nav-admin" class="text-wellow-400 hover:text-wellow-300 px-3 py-2 rounded-md text-sm font-medium smooth-transition hidden">Admin</a>
+                    </div>
+                </div>
+                <div>
+                    <button id="auth-btn" onclick="openAuthModal()" class="btn-primary text-white px-6 py-2.5 rounded-full text-sm font-medium smooth-transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        Войти
+                    </button>
+                    <div id="user-profile" class="hidden flex items-center gap-3">
+                        <span id="user-name-display" class="text-sm font-medium text-wellow-200"></span>
+                        <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <button onclick="logout()" class="text-xs text-gray-400 hover:text-white ml-2">Выйти</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        
+        <!-- HOME SECTION -->
+        <div id="section-home" class="active-section space-y-12">
+            <div class="text-center py-16 lg:py-24">
+                <h1 class="text-5xl md:text-7xl font-bold tracking-tighter mb-6">
+                    Семья <span class="text-transparent bg-clip-text bg-gradient-to-r from-wellow-400 to-wellow-600">Wellow Inc.</span>
+                </h1>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto font-light">
+                    Официальная семья на проекте Online Role-Play, сервер Nevada (03).<br>
+                    Численность семьи составляет более <span class="text-wellow-400 font-semibold">345</span> человек.
+                </p>
+                <div class="mt-10 flex justify-center gap-4">
+                    <a href="https://forum.gta-mobile.ru/threads/916916/" target="_blank" class="glass-panel px-8 py-3 text-sm font-medium hover:bg-wellow-900/30 smooth-transition text-white">
+                        Официальный портал
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-panel p-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-wellow-300">Деятельность</h3>
+                    <p class="text-gray-300 leading-relaxed">
+                        Семья оказывает квалифицированную юридическую помощь, а также занимается поставками оружия некоторым нелегальным организациям и союзным семьям. Мы ценим порядок, дисциплину и взаимовыгоду.
+                    </p>
+                </div>
+                <div class="glass-panel p-8">
+                    <h3 class="text-2xl font-semibold mb-4 text-wellow-300">Имущество</h3>
+                    <p class="text-gray-300 mb-4">
+                        Семейный Дворец V-Rock №1685<br>
+                        <span class="text-sm text-gray-400">г. Las-Venturas, район Рока-Эскаленте</span>
+                    </p>
+                    <h4 class="text-lg font-medium text-wellow-400 mt-6 mb-3">Автопарк:</h4>
+                    <ul class="space-y-2 text-sm text-gray-300">
+                        <li class="flex justify-between border-b border-wellow-900/50 pb-1"><span>Rolls-Royce Cullinan</span> <span>31.000.000$</span></li>
+                        <li class="flex justify-between border-b border-wellow-900/50 pb-1"><span>Mercedes-Benz Maybach s680</span> <span>23.000.000$</span></li>
+                        <li class="flex justify-between border-b border-wellow-900/50 pb-1"><span>Lamborghini Huracan</span> <span>25.640.000$</span></li>
+                        <li class="flex justify-between border-b border-wellow-900/50 pb-1"><span>Вертолет Maverick</span> <span>1.800.000$</span></li>
+                        <li class="flex justify-between"><span>BMW M1000RR</span> <span>4.500.000$</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACHIEVEMENTS SECTION -->
+        <div id="section-achievements" class="hidden-section space-y-12">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-white mb-4">Достижения участников</h2>
+                <p class="text-gray-400">История успехов членов семьи Wellow Inc.</p>
+            </div>
+
+            <div class="glass-panel overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-wellow-950/50 border-b border-wellow-800/50">
+                                <th class="p-4 text-sm font-semibold text-wellow-200">Имя (Nick_Name)</th>
+                                <th class="p-4 text-sm font-semibold text-wellow-200">Организация</th>
+                                <th class="p-4 text-sm font-semibold text-wellow-200">Должность / Достижение</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-wellow-900/30" id="achievements-tbody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- STRUCTURE SECTION -->
+        <div id="section-structure" class="hidden-section space-y-16">
+            
+            <!-- Leadership -->
+            <div>
+                <h2 class="text-3xl font-bold text-white mb-8 text-center">Руководящий состав</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    <div class="glass-panel p-6 flex items-center gap-6">
+                        <div class="w-16 h-16 rounded-full bg-wellow-800 flex items-center justify-center text-2xl font-bold text-white border-2 border-wellow-500">O</div>
+                        <div>
+                            <div class="text-xs text-wellow-400 font-semibold tracking-wider uppercase mb-1">[VII] President</div>
+                            <div class="text-xl font-bold text-white mb-1">Oliver_Wellow</div>
+                            <div class="text-sm text-gray-400 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                +1(333)888-835
+                            </div>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-6 flex items-center gap-6">
+                        <div class="w-16 h-16 rounded-full bg-wellow-900 flex items-center justify-center text-2xl font-bold text-white border-2 border-wellow-600">P</div>
+                        <div>
+                            <div class="text-xs text-wellow-400 font-semibold tracking-wider uppercase mb-1">[VI] Vice-President</div>
+                            <div class="text-xl font-bold text-white mb-1">Pablo_Desparo</div>
+                            <div class="text-sm text-gray-400 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                +1(333)286-666
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alliances -->
+            <div>
+                <h2 class="text-3xl font-bold text-white mb-8 text-center">Союзы</h2>
+                <div class="glass-panel overflow-hidden max-w-4xl mx-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-wellow-950/50 border-b border-wellow-800/50">
+                                <th class="p-4 text-sm font-semibold text-wellow-200">Название семьи</th>
+                                <th class="p-4 text-sm font-semibold text-wellow-200 text-right">Дата заключения</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm divide-y divide-wellow-900/30">
+                            <tr><td class="p-4 text-white">Berzloy Inc</td><td class="p-4 text-gray-400 text-right">18.06.2023</td></tr>
+                            <tr><td class="p-4 text-white">Dark Sky</td><td class="p-4 text-gray-400 text-right">19.07.2025</td></tr>
+                            <tr><td class="p-4 text-white">Military Professional Resources Incorporated</td><td class="p-4 text-gray-400 text-right">08.03.2025</td></tr>
+                            <tr><td class="p-4 text-white">Pipich Alliance</td><td class="p-4 text-gray-400 text-right">26.05.2025</td></tr>
+                            <tr><td class="p-4 text-white">Lucchese Mafia</td><td class="p-4 text-gray-400 text-right">13.08.2025</td></tr>
+                            <tr><td class="p-4 text-white">Quinn Dynasty</td><td class="p-4 text-gray-400 text-right">24.11.2025</td></tr>
+                            <tr><td class="p-4 text-white">Septes</td><td class="p-4 text-gray-400 text-right">12.01.2026</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Promotion System -->
+            <div>
+                <h2 class="text-3xl font-bold text-white mb-8 text-center">Система повышения</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-wellow-600"></div>
+                        <h4 class="text-lg font-bold text-white mb-2">Кандидат [1] → Аналитик [2]</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
+                            <li>Положить в банк семьи 10.000$ (screen + /stime)</li>
+                            <li>Иметь лицензию на оружие и права на машину</li>
+                            <li>Положить 60 грамм чая</li>
+                            <li>Вступить в конференцию семьи в Discord или Telegram</li>
+                        </ul>
+                    </div>
+                    <div class="glass-panel p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-wellow-500"></div>
+                        <h4 class="text-lg font-bold text-white mb-2">Аналитик [2] → Представитель [3]</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
+                            <li>Положить в банк семьи 30.000$ (screen + /stime)</li>
+                            <li>Положить 120 грамм чая на склад (screen + /stime)</li>
+                        </ul>
+                    </div>
+                    <div class="glass-panel p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-wellow-400"></div>
+                        <h4 class="text-lg font-bold text-white mb-2">Представитель [3] → Семейный Юрист [4]</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
+                            <li>Положить в банк семьи 65.000$ (screen + /stime)</li>
+                            <li>Положить на склад семьи 150 грамм чая</li>
+                            <li>Доверенность</li>
+                        </ul>
+                    </div>
+                    <div class="glass-panel p-6 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-wellow-300"></div>
+                        <h4 class="text-lg font-bold text-white mb-2">Семейный Юрист [4] → Политик [5]</h4>
+                        <ul class="list-disc list-inside text-sm text-gray-300 space-y-1">
+                            <li>Положить 100.000$ в банк семьи (screen + /stime)</li>
+                            <li>Положить на склад семьи 170 грамм чая</li>
+                            <li>Доверенность</li>
+                            <li>Сменить фамилию на "Wellow"</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARKET SECTION -->
+        <div id="section-market" class="hidden-section space-y-12">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-white mb-4">Теневой Рынок</h2>
+                <p class="text-gray-400">Официальные поставки для партнеров.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Info & Prices -->
+                <div class="space-y-8">
+                    <div class="glass-panel p-8">
+                        <h3 class="text-2xl font-semibold mb-4 text-wellow-300">Наши услуги</h3>
+                        <p class="text-gray-300 mb-6">
+                            Мы предлагаем патроны для любого оружия и синтетический порошок по выгодным ценам. Чем больше объём — тем ниже цена за единицу! Скидки применяются автоматически при оптовом заказе.
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="text-lg font-medium text-wellow-400 mb-3">Патроны</h4>
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-wellow-800/50">
+                                            <th class="py-2 text-sm font-semibold text-wellow-200">Количество</th>
+                                            <th class="py-2 text-sm font-semibold text-wellow-200 text-right">Цена</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-wellow-900/30">
+                                        <tr><td class="py-2 text-white">1 000 шт.</td><td class="py-2 text-wellow-400 font-mono text-right">30.000$</td></tr>
+                                        <tr><td class="py-2 text-white">2 000 шт.</td><td class="py-2 text-wellow-400 font-mono text-right">58.000$</td></tr>
+                                        <tr><td class="py-2 text-white">5 000 шт.</td><td class="py-2 text-wellow-400 font-mono text-right">140.000$</td></tr>
+                                        <tr><td class="py-2 text-white">10 000 шт.</td><td class="py-2 text-wellow-400 font-mono text-right">270.000$</td></tr>
+                                        <tr><td class="py-2 text-white">15 000 шт.</td><td class="py-2 text-wellow-400 font-mono text-right">390.000$</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-wellow-400 mb-3">Синтетический Порошок</h4>
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-wellow-800/50">
+                                            <th class="py-2 text-sm font-semibold text-wellow-200">Количество</th>
+                                            <th class="py-2 text-sm font-semibold text-wellow-200 text-right">Цена</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-wellow-900/30">
+                                        <tr><td class="py-2 text-white">500 грамм</td><td class="py-2 text-wellow-400 font-mono text-right">40.000$</td></tr>
+                                        <tr><td class="py-2 text-white">1 000 грамм</td><td class="py-2 text-wellow-400 font-mono text-right">70.000$</td></tr>
+                                        <tr><td class="py-2 text-white">3 000 грамм</td><td class="py-2 text-wellow-400 font-mono text-right">180.000$</td></tr>
+                                        <tr><td class="py-2 text-white">5 000 грамм</td><td class="py-2 text-wellow-400 font-mono text-right">290.000$</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="bg-wellow-950/50 rounded-lg p-4 border border-wellow-900/50">
+                            <h4 class="text-sm font-semibold text-wellow-300 mb-1">Связь с руководством:</h4>
+                            <p class="text-white font-mono">+1(333)888-835</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Form -->
+                <div class="glass-panel p-8">
+                    <h3 class="text-2xl font-semibold mb-6 text-wellow-300">Оформить заказ</h3>
+                    <form id="order-form" onsubmit="submitOrder(event)" class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Ваш игровой ник</label>
+                            <input type="text" id="order-nick" required readonly class="w-full bg-wellow-950/30 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition opacity-70 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Тип товара</label>
+                            <select id="order-type" onchange="updateOrderForm()" required class="w-full bg-wellow-950/50 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition appearance-none">
+                                <option value="ammo">Патроны</option>
+                                <option value="powder">Синтетический Порошок</option>
+                            </select>
+                        </div>
+                        <div id="ammo-fields" class="space-y-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Желаемое количество патронов</label>
+                                <select id="order-amount-ammo" class="w-full bg-wellow-950/50 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition appearance-none">
+                                    <option value="1 000 шт.">1 000 шт. (30.000$)</option>
+                                    <option value="2 000 шт.">2 000 шт. (58.000$)</option>
+                                    <option value="5 000 шт.">5 000 шт. (140.000$)</option>
+                                    <option value="10 000 шт.">10 000 шт. (270.000$)</option>
+                                    <option value="15 000 шт.">15 000 шт. (390.000$)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Тип оружия</label>
+                                <input type="text" id="order-weapon" placeholder="Например: Desert Eagle, M4" class="w-full bg-wellow-950/50 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition">
+                            </div>
+                        </div>
+                        <div id="powder-fields" class="hidden space-y-5">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-1">Желаемое количество порошка</label>
+                                <select id="order-amount-powder" class="w-full bg-wellow-950/50 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition appearance-none">
+                                    <option value="500 грамм">500 грамм (40.000$)</option>
+                                    <option value="1 000 грамм">1 000 грамм (70.000$)</option>
+                                    <option value="3 000 грамм">3 000 грамм (180.000$)</option>
+                                    <option value="5 000 грамм">5 000 грамм (290.000$)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-1">Номер телефона</label>
+                            <input type="text" id="order-phone" required placeholder="Ваш игровой номер" class="w-full bg-wellow-950/50 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition">
+                        </div>
+                        <button type="submit" class="w-full btn-primary text-white font-medium py-3 rounded-lg smooth-transition mt-4">
+                            Отправить заявку
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- User Orders -->
+            <div class="glass-panel p-8 mt-8">
+                <h3 class="text-xl font-semibold mb-6 text-wellow-300">Ваши последние заказы</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-wellow-800/50">
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Дата</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Товар</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Количество</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Телефон</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-orders-tbody" class="text-sm divide-y divide-wellow-900/30">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div id="no-orders-msg" class="text-center py-8 text-gray-500 hidden">У вас пока нет заказов.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN SECTION -->
+        <div id="section-admin" class="hidden-section space-y-8">
+            <div class="glass-panel p-8 border-wellow-500/30">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold text-white">Панель Управления</h2>
+                    <span class="bg-wellow-900 text-wellow-200 text-xs px-3 py-1 rounded-full border border-wellow-700">Доступ: President</span>
+                </div>
+                
+                <h3 class="text-xl font-semibold mb-4 text-wellow-300">Все заказы (Market)</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-wellow-950/80 border-b border-wellow-800/50">
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Дата</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Заказчик</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Товар</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Количество</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Телефон</th>
+                                <th class="py-3 px-4 text-sm font-semibold text-wellow-200">Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-orders-tbody" class="text-sm divide-y divide-wellow-900/30">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div id="admin-no-orders-msg" class="text-center py-8 text-gray-500 hidden">База заказов пуста.</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-wellow-900/30 bg-black/20 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-gray-500 text-sm">
+                &copy; 2026 Wellow Inc. Все права защищены.
+            </div>
+            <div class="text-gray-600 text-xs">
+                Online Role-Play | Nevada (03)
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 z-[100] hidden items-center justify-center">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+        <div class="glass-panel w-full max-w-md p-8 relative z-10 mx-4 transform transition-all scale-95 opacity-0" id="auth-modal-content">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 class="text-2xl font-bold text-white mb-2">Авторизация</h3>
+            <p class="text-sm text-gray-400 mb-6">Введите Nick_Name и пароль. Если аккаунта нет, он будет создан автоматически.</p>
+            
+            <div id="auth-error" class="hidden bg-red-900/30 border border-red-500/50 text-red-200 text-sm p-3 rounded-lg mb-4"></div>
+
+            <form onsubmit="handleAuth(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Игровой Nick_Name</label>
+                    <input type="text" id="auth-nick" required placeholder="Name_Surname" class="w-full bg-wellow-950/50 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Пароль</label>
+                    <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full bg-wellow-950/50 border border-wellow-800/50 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-wellow-500 smooth-transition">
+                </div>
+                <button type="submit" class="w-full btn-primary text-white font-medium py-2.5 rounded-lg smooth-transition mt-2">
+                    Войти / Зарегистрироваться
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const achievementsData = [
+            { name: "Oliver_Wellow", org: "Правительство", rank: "Губернатор x2" },
+            { name: "Pablo Desparo", org: "Правительство", rank: "Губернатор" },
+            { name: "Wesley Evers", org: "Правительство", rank: "Губернатор" },
+            { name: "Geo_Escalante", org: "Правительство", rank: "Губернатор" },
+            { name: "Pablo Desparo", org: "Правительство", rank: "Заместитель Губернатора" },
+            { name: "Wesley Evers", org: "Правительство", rank: "Заместитель Губернатора" },
+            { name: "Geo_Escalante", org: "Правительство", rank: "Заместитель Губернатора" },
+            { name: "Oliver_Wellow", org: "Правительство", rank: "Министр Юстиции x5" },
+            { name: "Pablo Desparo", org: "Правительство", rank: "Министр Здравоохранения x3" },
+            { name: "Leonardo_Dumbledore", org: "Правительство", rank: "Министр Здравоохранения" },
+            { name: "Wesley Evers", org: "Правительство", rank: "Министр Обороны" },
+            { name: "Anastasia_Wellow", org: "Правительство", rank: "Министр Юстиции" },
+            { name: "Michael Carrington", org: "Правительство", rank: "Министр Юстиции" },
+            { name: "mita markless", org: "Правительство", rank: "Министр Обороны" },
+            { name: "Choppy Kennedy", org: "Правительство", rank: "Министр Обороны" },
+            { name: "Choppy Kennedy", org: "FDCR", rank: "Начальник ФДКР" },
+            { name: "Choppy Kennedy", org: "Medical Center of San-Fierro", rank: "Главный Врач" },
+            { name: "Jackson Russell", org: "Medical Center of San-Fierro", rank: "Главный Врач" },
+            { name: "Ivan Bennet", org: "Groove Street", rank: "Mad Dog (Лидер)" },
+            { name: "Sweet Smaxwood", org: "Varios Los Actecas", rank: "Padre (Лидер)" },
+            { name: "Pablo Desparo", org: "Medical Center of Los-Santos", rank: "Заместитель Главного Врача" },
+            { name: "Oliver_Wellow", org: "Admins Team", rank: "Администратор сервера" },
+            { name: "Pablo Desparo", org: "Admins Team", rank: "Администратор сервера" },
+            { name: "Mitchel Gold", org: "Admins Team", rank: "Администратор сервера" },
+            { name: "Emilio_Escobar", org: "Admins Team", rank: "Администратор сервера" },
+            { name: "Night_Kvinton", org: "LVPD", rank: "Шеф Департамента" },
+            { name: "Vova Grimshade", org: "LSPD", rank: "Шеф Департамента" },
+            { name: "Mitchel Gold", org: "LSPD", rank: "Шеф Департамента" },
+            { name: "Richard_Opium", org: "LSPD", rank: "Шеф Департамента" },
+            { name: "Richard_Opium", org: "LSPD", rank: "Заместитель Шефа" },
+            { name: "Night_Kvinton", org: "LVPD", rank: "Заместитель Шефа" },
+            { name: "Anastasia_Wellow", org: "LVPD", rank: "Заместитель Шефа" },
+            { name: "Leonardo_Dumbledore", org: "Yakuza Mafia", rank: "Вакагасира (Заместитель)" },
+            { name: "Katsuro_Hiriko", org: "Yakuza Mafia", rank: "Вакагасира (Заместитель)" },
+            { name: "Ermolay_Sokolov", org: "Russian Mafia", rank: "Заместитель Директора" }
+        ];
+
+        let currentUser = null;
+        let users = JSON.parse(localStorage.getItem('wellow_users')) || {};
+        let orders = JSON.parse(localStorage.getItem('wellow_orders')) || [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAchievements();
+            const sessionUser = sessionStorage.getItem('wellow_session');
+            if (sessionUser) loginUser(sessionUser);
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('main > div').forEach(el => {
+                el.classList.remove('active-section');
+                el.classList.add('hidden-section');
+            });
+            const target = document.getElementById(`section-${sectionId}`);
+            if (target) {
+                target.classList.remove('hidden-section');
+                target.classList.add('active-section');
+            }
+            if (sectionId === 'market') renderUserOrders();
+            if (sectionId === 'admin') renderAdminOrders();
+        }
+
+        function renderAchievements() {
+            const tbody = document.getElementById('achievements-tbody');
+            tbody.innerHTML = achievementsData.map(item => `
+                <tr class="hover:bg-wellow-900/20 smooth-transition">
+                    <td class="p-4 text-white font-medium">${item.name}</td>
+                    <td class="p-4 text-gray-300">${item.org}</td>
+                    <td class="p-4 text-wellow-300">${item.rank}</td>
+                </tr>
+            `).join('');
+        }
+
+        function openAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            const content = document.getElementById('auth-modal-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            const content = document.getElementById('auth-modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.getElementById('auth-error').classList.add('hidden');
+                document.getElementById('auth-nick').value = '';
+                document.getElementById('auth-pass').value = '';
+            }, 200);
+        }
+
+        function handleAuth(e) {
+            e.preventDefault();
+            const nick = document.getElementById('auth-nick').value.trim();
+            const pass = document.getElementById('auth-pass').value;
+            const errorEl = document.getElementById('auth-error');
+
+            if (!users[nick]) {
+                users[nick] = { password: pass };
+                localStorage.setItem('wellow_users', JSON.stringify(users));
+                loginUser(nick);
+                closeAuthModal();
+            } else {
+                if (users[nick].password === pass) {
+                    loginUser(nick);
+                    closeAuthModal();
+                } else {
+                    errorEl.textContent = "Вы ввели неправильный пароль";
+                    errorEl.classList.remove('hidden');
+                }
+            }
+        }
+
+        function loginUser(nick) {
+            currentUser = nick;
+            sessionStorage.setItem('wellow_session', nick);
+            
+            document.getElementById('auth-btn').classList.add('hidden');
+            document.getElementById('user-profile').classList.remove('hidden');
+            document.getElementById('user-name-display').textContent = nick;
+            
+            document.getElementById('nav-market').classList.remove('hidden');
+            if (nick.toLowerCase() === 'oliver_wellow') {
+                document.getElementById('nav-admin').classList.remove('hidden');
+            }
+
+            document.getElementById('order-nick').value = nick;
+            updateOrderForm();
+        }
+
+        function logout() {
+            currentUser = null;
+            sessionStorage.removeItem('wellow_session');
+            
+            document.getElementById('auth-btn').classList.remove('hidden');
+            document.getElementById('user-profile').classList.add('hidden');
+            document.getElementById('nav-market').classList.add('hidden');
+            document.getElementById('nav-admin').classList.add('hidden');
+            
+            showSection('home');
+        }
+
+        function updateOrderForm() {
+            const type = document.getElementById('order-type').value;
+            if (type === 'ammo') {
+                document.getElementById('ammo-fields').classList.remove('hidden');
+                document.getElementById('powder-fields').classList.add('hidden');
+                document.getElementById('order-weapon').required = true;
+            } else {
+                document.getElementById('ammo-fields').classList.add('hidden');
+                document.getElementById('powder-fields').classList.remove('hidden');
+                document.getElementById('order-weapon').required = false;
+            }
+        }
+
+        function submitOrder(e) {
+            e.preventDefault();
+            if (!currentUser) return;
+
+            const type = document.getElementById('order-type').value;
+            let amount = '';
+            let item = '';
+
+            if (type === 'ammo') {
+                amount = document.getElementById('order-amount-ammo').value;
+                item = 'Патроны (' + document.getElementById('order-weapon').value + ')';
+            } else {
+                amount = document.getElementById('order-amount-powder').value;
+                item = 'Синтетический Порошок';
+            }
+
+            const phone = document.getElementById('order-phone').value;
+            const date = new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+
+            const newOrder = {
+                id: Date.now(),
+                user: currentUser,
+                item: item,
+                amount: amount,
+                phone: phone,
+                date: date,
+                status: 'Не рассмотрен'
+            };
+
+            orders.unshift(newOrder);
+            localStorage.setItem('wellow_orders', JSON.stringify(orders));
+            
+            document.getElementById('order-weapon').value = '';
+            document.getElementById('order-phone').value = '';
+            
+            renderUserOrders();
+            if (currentUser.toLowerCase() === 'oliver_wellow') renderAdminOrders();
+            alert('Заявка успешно отправлена!');
+        }
+
+        function getStatusBadge(status) {
+            if (status === 'Заказ принят') {
+                return `<span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded border border-green-700/50">${status}</span>`;
+            } else if (status === 'В обработке') {
+                return `<span class="bg-wellow-900/50 text-wellow-300 text-xs px-2 py-1 rounded border border-wellow-700/50">${status}</span>`;
+            } else {
+                return `<span class="bg-gray-800/50 text-gray-300 text-xs px-2 py-1 rounded border border-gray-600/50">${status || 'Не рассмотрен'}</span>`;
+            }
+        }
+
+        function renderUserOrders() {
+            const tbody = document.getElementById('user-orders-tbody');
+            const noOrdersMsg = document.getElementById('no-orders-msg');
+            const userOrders = orders.filter(o => o.user === currentUser);
+            
+            if (userOrders.length === 0) {
+                tbody.innerHTML = '';
+                noOrdersMsg.classList.remove('hidden');
+            } else {
+                noOrdersMsg.classList.add('hidden');
+                tbody.innerHTML = userOrders.map(o => `
+                    <tr class="hover:bg-wellow-900/20 smooth-transition">
+                        <td class="py-3 px-4 text-gray-400">${o.date}</td>
+                        <td class="py-3 px-4 text-white">${o.item || o.weapon}</td>
+                        <td class="py-3 px-4 text-wellow-300">${o.amount}</td>
+                        <td class="py-3 px-4 text-gray-300">${o.phone}</td>
+                        <td class="py-3 px-4">${getStatusBadge(o.status)}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function renderAdminOrders() {
+            const tbody = document.getElementById('admin-orders-tbody');
+            const noOrdersMsg = document.getElementById('admin-no-orders-msg');
+            
+            if (orders.length === 0) {
+                tbody.innerHTML = '';
+                noOrdersMsg.classList.remove('hidden');
+            } else {
+                noOrdersMsg.classList.add('hidden');
+                tbody.innerHTML = orders.map(o => `
+                    <tr class="hover:bg-wellow-900/20 smooth-transition">
+                        <td class="py-3 px-4 text-gray-400 text-xs">${o.date}</td>
+                        <td class="py-3 px-4 text-white font-medium">${o.user}</td>
+                        <td class="py-3 px-4 text-gray-300">${o.item || o.weapon}</td>
+                        <td class="py-3 px-4 text-wellow-300">${o.amount}</td>
+                        <td class="py-3 px-4 text-gray-300">${o.phone}</td>
+                        <td class="py-3 px-4 flex items-center gap-2">
+                            <select onchange="updateOrderStatus(${o.id}, this.value)" class="bg-wellow-950/50 border border-wellow-800/50 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-wellow-500">
+                                <option value="Не рассмотрен" ${o.status === 'Не рассмотрен' || !o.status ? 'selected' : ''}>Не рассмотрен</option>
+                                <option value="В обработке" ${o.status === 'В обработке' ? 'selected' : ''}>В обработке</option>
+                                <option value="Заказ принят" ${o.status === 'Заказ принят' ? 'selected' : ''}>Заказ принят</option>
+                            </select>
+                            <button onclick="deleteOrder(${o.id})" class="text-red-400 hover:text-red-300 text-xs border border-red-900/50 bg-red-900/20 px-2 py-1 rounded smooth-transition">Удалить</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        function updateOrderStatus(id, newStatus) {
+            const orderIndex = orders.findIndex(o => o.id === id);
+            if (orderIndex !== -1) {
+                orders[orderIndex].status = newStatus;
+                localStorage.setItem('wellow_orders', JSON.stringify(orders));
+            }
+        }
+
+        function deleteOrder(id) {
+            if(confirm('Удалить этот заказ?')) {
+                orders = orders.filter(o => o.id !== id);
+                localStorage.setItem('wellow_orders', JSON.stringify(orders));
+                renderAdminOrders();
+            }
+        }
+    </script>
+</body>
+</html>
